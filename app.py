@@ -42,7 +42,7 @@ for url in videoList:
     texts.extend(text_splitter.split_documents(res))
 
 db = Pinecone.from_texts([t.page_content for t in texts], embeddings, index_name=index_name)
-retriever = db.as_retriever(search_type="similarity", search_kwargs={"k":2})
+retriever = db.as_retriever(search_type="similarity", search_kwargs={"k":3})
 print("\n\nDone analyzing!")
 print("Ready to answer some questions! (Type 'quit' to exit any time)")
 run_queries = True
@@ -53,5 +53,10 @@ while(run_queries):
         print("Quitting...")
         exit(0)
     else:
-        qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
-        print(qa.run(query))
+        qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=True)
+        result = qa({"query": query})
+        print(result["result"])
+        # TODO: Sources cannot be determined, as pytube cannot read titles for some reason
+        # print("Source(s): ")
+        # for source in result['source_documents']:
+        #     print(source.metadata.get('source'))
